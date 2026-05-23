@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 
-MODEL_NAME = "klue/bert-base"
+MODEL_NAME = "blockenters/sms-spam-classifier"
 
 tokenizer = None
 model = None
@@ -14,7 +14,6 @@ def load_model():
         tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
         model = AutoModelForSequenceClassification.from_pretrained(
             MODEL_NAME,
-            num_labels=2
         )
         model.eval()
 

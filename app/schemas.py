@@ -13,6 +13,3 @@ class AnalyzeResponse(BaseModel):
     risk_level: str
     confidence: float
     reason: List[str]
-
-    preprocessed_text: Optional[str] = None
-    model_outputs: Optional[Dict] = None

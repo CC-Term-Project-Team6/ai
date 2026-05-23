@@ -51,11 +51,4 @@ def analyze(req: AnalyzeRequest):
         risk_level=final_result["risk_level"],
         confidence=final_result["confidence"],
         reason=final_result["reasons"],
-        preprocessed_text=clean_text,
-        model_outputs={
-            "klue_bert": bert_result,
-            "azure_language": azure_result,
-            "rule_based": rule_result,
-            "aggregation_method": "bert_score + rule_bonus + azure_entity_bonus"
-        }
     )
