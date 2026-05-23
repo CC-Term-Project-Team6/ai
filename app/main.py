@@ -3,7 +3,8 @@ from app.schemas import AnalyzeRequest, AnalyzeResponse
 from app.preprocessing import preprocess_text
 from app.model import predict_spam
 from app.azure_language import analyze_entities
-from app.rule_based import rule_based_features, aggregate_result
+from app.rule_based import rule_based_features
+from app.aggregator import aggregate_result
 import logging
 
 app = FastAPI(title="Spam/Phishing Detection AI Service")
@@ -25,9 +26,9 @@ def analyze(req: AnalyzeRequest):
 
     logger.info(f"Preprocessed text: {clean_text}")
 
-    bert_result = predict_spam(clean_text)
+    model_result = predict_spam(clean_text)
 
-    logger.info(f"BERT result: {bert_result}")
+    logger.info(f"Model result: {model_result}")
 
     azure_result = analyze_entities(req.text)
 
@@ -38,7 +39,7 @@ def analyze(req: AnalyzeRequest):
     logger.info(f"Rule result: {rule_result}")
 
     final_result = aggregate_result(
-        bert_result=bert_result,
+        model_result=model_result,
         azure_result=azure_result,
         rule_result=rule_result
     )
