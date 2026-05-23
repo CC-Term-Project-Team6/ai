@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.schemas import AnalyzeRequest, AnalyzeResponse
 from app.preprocessing import preprocess_text
-from app.rule_based import rule_based_predict
+from app.model import predict_spam
 
 app = FastAPI(title="Spam/Phishing Detection AI Service")
 
@@ -15,16 +15,14 @@ def root():
 def analyze(req: AnalyzeRequest):
     clean_text = preprocess_text(req.text)
 
-    label, risk_level, confidence, reasons = rule_based_predict(clean_text)
+    prediction = predict_spam(clean_text)
 
     return AnalyzeResponse(
         request_id=req.request_id,
-        label=label,
-        risk_level=risk_level,
-        confidence=confidence,
-        reason=reasons,
+        label=prediction["label"],
+        risk_level=prediction["risk_level"],
+        confidence=prediction["confidence"],
+        reason=prediction["reason"],
         preprocessed_text=clean_text,
-        model_outputs={
-            "method": "rule_based_v0"
-        }
+        model_outputs=prediction["model_outputs"]
     )

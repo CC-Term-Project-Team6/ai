@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional, Dict
+
 
 class AnalyzeRequest(BaseModel):
     request_id: str
@@ -12,3 +13,6 @@ class AnalyzeResponse(BaseModel):
     risk_level: str
     confidence: float
     reason: List[str]
+
+    preprocessed_text: Optional[str] = None
+    model_outputs: Optional[Dict] = None
