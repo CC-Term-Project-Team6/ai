@@ -1,11 +1,8 @@
-def aggregate_result(bert_result, azure_result, rule_result):
-    base_score = bert_result["spam_score"]
+def aggregate_result(model_result, azure_result):
+    base_score = model_result["spam_score"]
     final_score = base_score
 
     reasons = []
-
-    reasons.extend(rule_result["reasons"])
-    final_score += rule_result["score_bonus"]
 
     risk_entities = azure_result.get("risk_entities", [])
 

@@ -3,7 +3,6 @@ from app.schemas import AnalyzeRequest, AnalyzeResponse
 from app.preprocessing import preprocess_text
 from app.model import predict_spam
 from app.azure_language import analyze_entities
-from app.rule_based import rule_based_features
 from app.aggregator import aggregate_result
 import logging
 import asyncio
@@ -38,12 +37,10 @@ async def analyze(req: AnalyzeRequest):
         azure_task
     )
 
-    rule_result = rule_based_features(clean_text)
 
     final_result = aggregate_result(
         model_result=model_result,
         azure_result=azure_result,
-        rule_result=rule_result
     )
 
     logger.info(
@@ -56,8 +53,6 @@ clean_text={clean_text}
 model_result={model_result}
 
 azure_result={azure_result}
-
-rule_result={rule_result}
 
 final_result={final_result}
 """
