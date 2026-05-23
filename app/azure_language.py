@@ -5,58 +5,57 @@ from azure.core.credentials import AzureKeyCredential
 
 load_dotenv()
 
+AZURE_LANGUAGE_ENDPOINT = os.getenv("AZURE_LANGUAGE_ENDPOINT")
+AZURE_LANGUAGE_KEY = os.getenv("AZURE_LANGUAGE_KEY")
 
-def get_language_client():
-    endpoint = os.getenv("AZURE_LANGUAGE_ENDPOINT")
-    key = os.getenv("AZURE_LANGUAGE_KEY")
 
-    if not endpoint or not key:
+def get_client():
+    if not AZURE_LANGUAGE_ENDPOINT or not AZURE_LANGUAGE_KEY:
         return None
 
     return TextAnalyticsClient(
-        endpoint=endpoint,
-        credential=AzureKeyCredential(key)
+        endpoint=AZURE_LANGUAGE_ENDPOINT,
+        credential=AzureKeyCredential(AZURE_LANGUAGE_KEY)
     )
 
 
 def analyze_entities(text: str):
-    client = get_language_client()
+    client = get_client()
 
     if client is None:
         return {
             "enabled": False,
             "entities": [],
-            "error": "Azure Language endpoint/key not configured"
+            "risk_entities": []
         }
 
     try:
-        result = client.recognize_entities([text], language="ko")[0]
-
-        if result.is_error:
-            return {
-                "enabled": True,
-                "entities": [],
-                "error": str(result.error)
-            }
+        result = client.recognize_entities([text])[0]
 
         entities = []
+        risk_entities = []
+
         for entity in result.entities:
-            entities.append({
+            item = {
                 "text": entity.text,
                 "category": entity.category,
-                "subcategory": entity.subcategory,
-                "confidence_score": entity.confidence_score
-            })
+                "confidence": round(entity.confidence_score, 4)
+            }
+            entities.append(item)
+
+            if entity.category in ["URL", "Organization", "PhoneNumber"]:
+                risk_entities.append(item)
 
         return {
             "enabled": True,
             "entities": entities,
-            "error": None
+            "risk_entities": risk_entities
         }
 
     except Exception as e:
         return {
-            "enabled": True,
+            "enabled": False,
+            "error": str(e),
             "entities": [],
-            "error": str(e)
+            "risk_entities": []
         }

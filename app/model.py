@@ -1,34 +1,53 @@
-from app.rule_based import rule_based_predict
-from app.azure_language import analyze_entities
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+
+MODEL_NAME = "klue/bert-base"
+
+tokenizer = None
+model = None
+
+
+def load_model():
+    global tokenizer, model
+
+    if tokenizer is None or model is None:
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            MODEL_NAME,
+            num_labels=2
+        )
+        model.eval()
+
 
 def predict_spam(text: str):
-    # 1. rule-based
-    label, risk_level, confidence, reasons = rule_based_predict(text)
+    load_model()
 
-    # 2. Azure AI Language 호출
-    azure_result = analyze_entities(text)
+    inputs = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True,
+        padding=True,
+        max_length=128
+    )
 
-    # 3. Azure에서 URL, 조직 등 의심 엔티티 있으면 보정
-    suspicious_entities = []
-    for entity in azure_result.get("entities", []):
-        if entity["category"] in ["URL", "Organization", "PhoneNumber", "Email"]:
-            suspicious_entities.append(entity)
+    with torch.no_grad():
+        outputs = model(**inputs)
+        probs = torch.softmax(outputs.logits, dim=1)[0]
 
-    if suspicious_entities:
-        reasons.append("Azure AI Language에서 의심 엔티티 탐지")
-        confidence = min(confidence + 0.05, 0.99)
+    normal_score = probs[0].item()
+    spam_score = probs[1].item()
 
-    # 4. 최종 JSON 구성
+    if spam_score >= normal_score:
+        label = "spam"
+        confidence = spam_score
+    else:
+        label = "normal"
+        confidence = normal_score
+
     return {
         "label": label,
-        "risk_level": risk_level,
-        "confidence": confidence,
-        "reason": reasons,
-        "model_outputs": {
-            "rule_based": {
-                "label": label,
-                "confidence": confidence
-            },
-            "azure_language": azure_result
-        }
+        "confidence": round(confidence, 4),
+        "spam_score": round(spam_score, 4),
+        "normal_score": round(normal_score, 4),
+        "model_name": MODEL_NAME
     }
