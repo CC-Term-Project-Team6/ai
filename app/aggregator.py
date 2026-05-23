@@ -11,30 +11,31 @@ def aggregate_result(model_result, azure_result):
 
         if category == "URL":
             final_score += 0.15
-            reasons.append(f"Azure 엔티티 탐지: URL({entity['text']})")
+            reasons.append(f"Azure 위험 엔티티 탐지: URL({entity['text']})")
 
         elif category == "Organization":
             final_score += 0.05
-            reasons.append(f"Azure 엔티티 탐지: 기관명({entity['text']})")
+            reasons.append(f"Azure 위험 엔티티 탐지: 기관명({entity['text']})")
 
         elif category == "PhoneNumber":
             final_score += 0.10
-            reasons.append(f"Azure 엔티티 탐지: 전화번호({entity['text']})")
+            reasons.append(f"Azure 위험 엔티티 탐지: 전화번호({entity['text']})")
 
     final_score = min(final_score, 1.0)
 
     if final_score >= 0.75:
         label = "spam"
         risk_level = "high"
+        reasons.append("AI 모델이 스팸 패턴을 탐지함")
     elif final_score >= 0.45:
         label = "suspicious"
         risk_level = "medium"
+        reasons.append("AI 모델이 의심 패턴을 탐지함")
     else:
         label = "normal"
         risk_level = "low"
-
-    if not reasons:
         reasons.append("특별한 위험 신호 없음")
+
 
     return {
         "label": label,
