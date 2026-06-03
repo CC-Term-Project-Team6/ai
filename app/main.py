@@ -6,6 +6,7 @@ from app.azure_language import analyze_entities
 from app.aggregator import aggregate_result
 import logging
 import asyncio
+from app.smishing_model import predict_smishing
 
 app = FastAPI(title="Spam/Phishing Detection AI Service")
 
@@ -22,8 +23,13 @@ async def analyze(req: AnalyzeRequest):
 
     clean_text = preprocess_text(req.text)
 
-    model_task = asyncio.to_thread(
+    spam_task = asyncio.to_thread(
         predict_spam,
+        clean_text
+    )
+
+    smishing_task = asyncio.to_thread(
+        predict_smishing,
         clean_text
     )
 
@@ -32,14 +38,16 @@ async def analyze(req: AnalyzeRequest):
         req.text
     )
 
-    model_result, azure_result = await asyncio.gather(
-        model_task,
+    spam_result, smishing_result, azure_result = await asyncio.gather(
+        spam_task,
+        smishing_task,
         azure_task
     )
 
 
     final_result = aggregate_result(
-        model_result=model_result,
+        spam_result=spam_result,
+        smishing_result=smishing_result,
         azure_result=azure_result,
     )
 
@@ -50,7 +58,9 @@ request_id={req.request_id}
 
 clean_text={clean_text}
 
-model_result={model_result}
+spam_result={spam_result}
+
+smishing_result={smishing_result}
 
 azure_result={azure_result}
 

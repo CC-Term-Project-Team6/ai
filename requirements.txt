@@ -6,3 +6,6 @@ transformers == 4.41.2
 torch == 2.2.2 
 azure-ai-textanalytics
 azure-core
+joblib
+huggingface-hub
+scikit-learn

@@ -33,8 +33,8 @@ def predict_spam(text: str):
         outputs = model(**inputs)
         probs = torch.softmax(outputs.logits, dim=1)[0]
 
-    normal_score = probs[0].item()
-    spam_score = probs[1].item()
+    normal_score = probs[0].item() + 0.2
+    spam_score = probs[1].item() * 0.8
 
     if spam_score >= normal_score:
         label = "spam"

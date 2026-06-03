@@ -19,7 +19,7 @@ def get_client():
     )
 
 
-def analyze_entities(text: str):
+def analyze_entities(text: str): # NER
     client = get_client()
 
     if client is None:
