@@ -6,39 +6,34 @@ def aggregate_result(spam_result, smishing_result, azure_result):
 
     risk_entities = azure_result.get("risk_entities", [])
 
-    has_url = False
-    has_org = False
-    has_phone = False
+    entity_score = 0.0
 
     for entity in risk_entities:
         category = entity["category"]
 
         if category == "URL":
-            has_url = True
+            entity_score += 0.4
             reasons.append(f"Azure 위험 엔티티 탐지: URL({entity['text']})")
 
         elif category == "Organization":
-            has_org = True
+            entity_score += 0.2
             reasons.append(f"Azure 위험 엔티티 탐지: 기관명({entity['text']})")
 
         elif category == "PhoneNumber":
-            has_phone = True
+            entity_score += 0.3
             reasons.append(f"Azure 위험 엔티티 탐지: 전화번호({entity['text']})")
 
-    adjusted_smishing_score = smishing_score
+    entity_score = min(entity_score, 1.0)
+
+    if risk_entities:
+        adjusted_smishing_score = (
+            0.7 * smishing_score
+            + 0.3 * entity_score
+        )
+    else:
+        adjusted_smishing_score = smishing_score
+
     adjusted_spam_score = spam_score
-
-    if has_url:
-        adjusted_smishing_score += 0.05
-
-    if has_phone:
-        adjusted_smishing_score += 0.03
-
-    if has_org:
-        adjusted_smishing_score += 0.02
-
-    adjusted_smishing_score = min(adjusted_smishing_score, 1.0)
-    adjusted_spam_score = min(adjusted_spam_score, 1.0)
 
     if adjusted_smishing_score >= 0.70:
         label = "smishing"
