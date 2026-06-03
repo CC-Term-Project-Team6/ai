@@ -9,3 +9,5 @@ azure-core
 joblib
 huggingface-hub
 scikit-learn
+requests
+urlextract

@@ -1,4 +1,14 @@
-def aggregate_result(spam_result, smishing_result, azure_result):
+def aggregate_result(spam_result, smishing_result, azure_result, safe_browsing_result):
+    if safe_browsing_result.get("status") == "malicious":
+        return {
+            "label": "smishing",
+            "risk_level": "high",
+            "confidence": 0.99,
+            "reasons": [
+                "Google Safe Browsing에서 악성 URL로 탐지됨"
+            ]
+        }
+
     spam_score = spam_result["spam_score"]
     smishing_score = smishing_result["smishing_score"]
 
