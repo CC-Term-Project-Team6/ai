@@ -1,12 +1,14 @@
+from app.domain_trust import is_trusted_url
+
+
 def aggregate_result(spam_result, smishing_result, azure_result, safe_browsing_result):
+    # 1단계: Google Safe Browsing에서 악성 URL이면 바로 스미싱 확정
     if safe_browsing_result.get("status") == "malicious":
         return {
             "label": "smishing",
             "risk_level": "high",
             "confidence": 0.99,
-            "reasons": [
-                "Google Safe Browsing에서 악성 URL로 탐지됨"
-            ]
+            "reasons": ["Google Safe Browsing에서 악성 URL로 탐지됨"]
         }
 
     spam_score = spam_result["spam_score"]
@@ -22,8 +24,14 @@ def aggregate_result(spam_result, smishing_result, azure_result, safe_browsing_r
         category = entity["category"]
 
         if category == "URL":
+            url = entity["text"]
+
+            if is_trusted_url(url):
+                reasons.append(f"신뢰 도메인 확인: {url} (위험 점수 미반영)")
+                continue
+
             entity_score += 0.4
-            reasons.append(f"Azure 위험 엔티티 탐지: URL({entity['text']})")
+            reasons.append(f"Azure 위험 엔티티 탐지: URL({url})")
 
         elif category == "Organization":
             entity_score += 0.2

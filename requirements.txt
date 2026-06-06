@@ -11,3 +11,4 @@ huggingface-hub
 scikit-learn
 requests
 urlextract
+tldextract
